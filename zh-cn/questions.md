@@ -37,16 +37,15 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
 - 移动端：ios10+、android5+
 
 ## 4、微应用无法渲染但没有报错
-请检查路由配置是否正确，详情查看[路由](/zh-cn/route)一章，或者[jsonpFunction是否冲突](/zh-cn/questions?id=_5、webpack-jsonpfunction-冲突导致渲染失败)
+请检查路由配置是否正确，详情查看[路由](/zh-cn/route)一章，或者[下面第5条：jsonpFunction是否冲突](/zh-cn/questions?id=_5、webpack-jsonpfunction-冲突导致渲染失败)
 
-## 5、webpack jsonpFunction 冲突导致渲染失败
-这种情况常见于基座应用和子应用都是通过create-react-app等类似脚手架创建的项目。
+## 5、webpack-jsonpfunction-冲突导致渲染失败
+这种情况常见于多个应用都是通过create-react-app等类似脚手架创建的项目，或一个应用多次重复渲染。
 
-如果基座应用和子应用在配置webapck时具有相同的jsonpFunction名称，会导致资源加载混乱。
+因为相同的jsonpFunction名称会导致资源加载混乱。
 
-解决方式：这种方式通常可以通过修改基座应用或子应用的package.json中的name值解决。
+解决方式：
 
-如果上述方法无法解决，需要手动修改webpack配置。
 ```js
 // webpack.config.js
 module.exports = {
@@ -54,6 +53,7 @@ module.exports = {
   output: {
     ...
     jsonpFunction: `webpackJsonp_自定义名称`,
+    globalObject: 'window',
   },
 }
 ```
@@ -64,11 +64,11 @@ module.exports = {
 ## 7、vue3的问题
 **1、样式失效**
 
-vue3中样式失效的问题可以尝试配置[macro](/zh-cn/configure?id=macro)解决，如果依然有问题，可以通过[关闭样式隔离](/zh-cn/configure?id=disablescopecss)解决。
+通过[禁用样式隔离](/zh-cn/configure?id=disablescopecss)解决。
 
 **2、图片等静态资源无法正常加载**
 
-vue3中需要配置publicPath补全资源地址，详情请查看[public-path](/zh-cn/static-source?id=手动补全)
+vue3中需要配置publicPath补全资源地址，详情请查看[publicPath](/zh-cn/static-source?id=publicpath)
 
 
 ## 8、开发环境中渲染angular子应用报错
@@ -96,14 +96,30 @@ vue3中需要配置publicPath补全资源地址，详情请查看[public-path](/
   - 2、(0, eval)('window')
   - 3、window.rawWindow
 
-## 13、错误信息 `ReferenceError: xxxx is not defined`
+## 13、错误信息：xxx 未定义
+
+**包括：**
+- `xxx is not defined`
+- `xxx is not a function`
+- `Cannot read properties of undefined`
+
+**原因：**
+
 在微前端的沙箱环境中，顶层变量不会泄漏为全局变量。
 
-例如在正常情况下，通过 var name 或 function name () {} 定义的顶层变量会泄漏为全局变量，通过window.name或name就可以全局访问。但是在微前端环境下，所有js都会放入一个沙箱函数中运行，导致这些顶层变量无法泄漏为全局变量，从而导致上述问题。
+例如在正常情况下，通过 var name 或 function name () {} 定义的顶层变量会泄漏为全局变量，通过window.name或name就可以全局访问。
 
-**解决方式**：通过 window.name = xx，明确声明全局变量。
+但是在沙箱环境下这些顶层变量无法泄漏为全局变量，window.name或name为undefined，导致出现问题。
 
-这个问题常见于通过webpack打包的dll文件，因为dll文件的内容和js地址相对固定，可以通过插件系统进行修改。
+**解决方式**：
+
+*方式一：手动修改*
+
+将 var name 或 function name () {} 修改为 window.name = xx
+
+*方式二：通过插件系统修改子应用代码*
+
+比如常见的加载webpack打包的dll文件失败的问题，因为dll文件的内容和js地址相对固定，可以直接进行全局查找和修改。
 ```js
 microApp.start({
   plugins: {
@@ -156,3 +172,6 @@ microApp.start({
 
 ## 16、子应用之间如何跳转
   参考[应用之间如何跳转](/zh-cn/route?id=应用之间如何跳转)一章
+
+## 17、jsonp请求如何处理？
+ 参考[ignore](/zh-cn/configure?id=ignore忽略元素)

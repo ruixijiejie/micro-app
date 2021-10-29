@@ -126,7 +126,7 @@ microApp.start({
 #### ** React **
 ```js
 // index.js
-// 子应用卸载事件
+// 子应用卸载
 window.addEventListener('unmount', function () {
   // 卸载应用
   ReactDOM.unmountComponentAtNode(document.getElementById('root'))
@@ -136,10 +136,33 @@ window.addEventListener('unmount', function () {
 #### ** Vue2 **
 ```js
 // main.js
-// 子应用卸载事件
+...
+let app = new Vue({
+  router,
+  render: h => h(App),
+}).$mount('#app')
+
+// 监听卸载
 window.addEventListener('unmount', function () {
   // 卸载应用
   app.$destroy()
+  app = null
+})
+```
+
+#### ** Vue3 **
+```js
+// main.js
+...
+let app = createApp(App)
+
+app.use(router).mount('#app')
+
+// 监听卸载
+window.addEventListener('unmount', function () {
+  // 卸载应用
+  app.unmount()
+  app = null
 })
 ```
 <!-- tabs:end -->
